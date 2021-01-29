@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/feifeigood/prometheus-zenaiop/pkg/converter"
 	"github.com/go-resty/resty/v2"
@@ -40,12 +41,16 @@ func (s simpleService) Post(wm webhook.Message) ([]PostResponse, error) {
 		return nil, fmt.Errorf("failed to parse webhook message: %w", err)
 	}
 
-	resp, err := s.client.R().EnableTrace().SetHeader("Content-Type", "application/json").SetBody(jsonMarshal(map[string]interface{}{"alerts": alerts})).Post(s.webhookURL)
-	if err != nil {
-		return nil, err
-	}
+	// post time range in > 21:00 PM or < 10:00 AM
+	t := time.Now()
+	if t.Hour() >= 21 || t.Hour() <= 9 {
+		resp, err := s.client.R().EnableTrace().SetHeader("Content-Type", "application/json").SetBody(jsonMarshal(map[string]interface{}{"alerts": alerts})).Post(s.webhookURL)
+		if err != nil {
+			return nil, err
+		}
 
-	zap.S().Infof("send notification to aiop webhook status: %d, body: %s", resp.StatusCode(), resp.Body())
+		zap.S().Infof("send notification to aiop webhook status: %d, body: %s", resp.StatusCode(), resp.Body())
+	}
 
 	return nil, nil
 }

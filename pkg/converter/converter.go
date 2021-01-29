@@ -18,7 +18,7 @@ type AIOPAlerts []AIOPAlert
 // http://10.64.13.30:5006/api/v1.0/recive_alert/inter_alarm/SRE
 type AIOPAlert struct {
 	// ID is identifier for device using int type
-	ID int64 `json:"id"`
+	ID uint32 `json:"id"`
 	// Level is message priority level, the level order is 1 < 2 < 3
 	Level int `json:"level"`
 	// Type is message name for alert
@@ -74,28 +74,28 @@ func TimeIn(t time.Time, name string) (time.Time, error) {
 }
 
 const (
-	offset64 = 14695981039346656037
-	prime64  = 1099511628211
+	offset32 = 2166136261
+	prime32  = 16777619
 )
 
-// hashNew initializies a new fnv64a hash value.
-func hashNew() uint64 {
-	return offset64
+// hashNew initializies a new fnv32a hash value.
+func hashNew() uint32 {
+	return offset32
 }
 
-// hashAdd adds a string to a fnv64a hash value, returning the updated hash.
-func hashAdd(h uint64, s string) uint64 {
+// hashAdd adds a string to a fnv32a hash value, returning the updated hash.
+func hashAdd(h uint32, s string) uint32 {
 	for i := 0; i < len(s); i++ {
-		h ^= uint64(s[i])
-		h *= prime64
+		h ^= uint32(s[i])
+		h *= prime32
 	}
 	return h
 }
 
-// hashAddByte adds a byte to a fnv64a hash value, returning the updated hash.
-func hashAddByte(h uint64, b byte) uint64 {
-	h ^= uint64(b)
-	h *= prime64
+// hashAddByte adds a byte to a fnv32a hash value, returning the updated hash.
+func hashAddByte(h uint32, b byte) uint32 {
+	h ^= uint32(b)
+	h *= prime32
 	return h
 }
 
@@ -137,7 +137,7 @@ var (
 )
 
 // FormatAIOPID converts labels to id
-func FormatAIOPID(ls template.KV) int64 {
+func FormatAIOPID(ls template.KV) uint32 {
 	labelNames := make(LabelNames, 0, len(ls))
 	for labelName := range ls {
 		labelNames = append(labelNames, LabelName(labelName))
@@ -152,7 +152,7 @@ func FormatAIOPID(ls template.KV) int64 {
 		sum = hashAddByte(sum, SeparatorByte)
 	}
 
-	return int64(sum)
+	return sum
 }
 
 // FormatAIOPTime format time to AIOP time
